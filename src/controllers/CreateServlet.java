@@ -36,6 +36,7 @@ public class CreateServlet extends HttpServlet {
 
 			em.persist(m);					//データベースをセーブ
 			em.getTransaction().commit();	//コミット
+			req.getSession().setAttribute("flush", "登録が完了しました");
 			em.close();						//データベースを閉じる
 
 			resp.sendRedirect(req.getContextPath()+"/index");//リダイレクト
