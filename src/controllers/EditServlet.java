@@ -28,8 +28,11 @@ public class EditServlet extends HttpServlet{
     req.setAttribute("message", m);
     req.setAttribute("_token", req.getSession().getId());
 
+    // メッセージデータが存在しているときのみ
     // メッセージIDをセッションスコープに登録
-    req.getSession().setAttribute("message_id", m.getId());
+    if(m != null) {
+        req.getSession().setAttribute("message_id", m.getId());
+    }
 
     RequestDispatcher rd = req.getRequestDispatcher("/WEB-INF/views/messages/edit.jsp");
     rd.forward(req,resp);
