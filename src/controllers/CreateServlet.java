@@ -2,8 +2,10 @@ package controllers;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.Message;
+import models.validators.MessageValidator;
 import util.DBUtil;
 
 @WebServlet("/create")
@@ -34,13 +37,26 @@ public class CreateServlet extends HttpServlet {
 			m.setCreated_at(currentTime);
 			m.setUpdated_at(currentTime);
 
-			em.persist(m);					//データベースをセーブ
-			em.getTransaction().commit();	//コミット
-			req.getSession().setAttribute("flush", "登録が完了しました");
-			em.close();						//データベースを閉じる
+			// バリデーションを実行してエラーがあったら新規登録のフォームに戻る
+            List<String> errors = MessageValidator.validate(m);
+            if(errors.size() > 0) {
+                em.close();
 
-			resp.sendRedirect(req.getContextPath()+"/index");//リダイレクト
+                // フォームに初期値を設定、さらにエラーメッセージを送る
+                req.setAttribute("_token", req.getSession().getId());
+                req.setAttribute("message", m);
+                req.setAttribute("errors", errors);
 
+                RequestDispatcher rd = req.getRequestDispatcher("/WEB-INF/views/messages/new.jsp");
+                rd.forward(req, resp);
+            } else {
+				em.persist(m);					//データベースをセーブ
+				em.getTransaction().commit();	//コミット
+				req.getSession().setAttribute("flush", "登録が完了しました");
+				em.close();						//データベースを閉じる
+
+				resp.sendRedirect(req.getContextPath()+"/index");//リダイレクト
+            }
 		}
 	}
 
